@@ -30,8 +30,7 @@ def generate_questions_answers(
 
     # Step 2: Build prompt
     prompt = f"""
-        You are a helpful teacher. Based on the following content, generate {num_questions} {question_type} questions with answers
-        suitable for Grade {grade} students.
+        You are a helpful teacher assistant. Based on the following content, generate {num_questions} {question_type} questions with answers.
 
         Context:
         {context}
@@ -55,8 +54,9 @@ def generate_questions_answers(
 
     elif model_type in ["huggingface"]:
         generator = load_huggingface_model(model_name=model_name, hf_token=hf_token)
-        result = generator(prompt, max_new_tokens=1024, temperature=0.7)[0]['generated_text']
-        return result.strip()
+        result = generator(prompt, max_new_tokens=2048, temperature=0.7)[0]['generated_text']
+        cleaned_result = result[len(prompt):].strip() if result.startswith(prompt) else result.strip()
+        return cleaned_result
 
     else:
         raise ValueError(f"Model type '{model_type}' not supported.")
