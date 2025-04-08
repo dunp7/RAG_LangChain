@@ -7,9 +7,9 @@ import functools
 
 
 @functools.lru_cache(maxsize=2)
-def load_huggingface_model(model_name="facebook/opt-350m", device_map="auto", torch_dtype="auto"):
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModelForCausalLM.from_pretrained(model_name, device_map=device_map, torch_dtype=torch_dtype)
+def load_huggingface_model(model_name="facebook/opt-350m", device_map="auto", torch_dtype="auto", hf_token=None):
+    tokenizer = AutoTokenizer.from_pretrained(model_name, use_auth_token=hf_token)
+    model = AutoModelForCausalLM.from_pretrained(model_name, device_map=device_map, use_auth_token=hf_token, torch_dtype=torch_dtype)
     return pipeline("text-generation", model=model, tokenizer=tokenizer)
 
 
@@ -21,7 +21,8 @@ def generate_questions_answers(
     vectorstore,
     model_type: str = "any_hf",
     model_name: str = "facebook/opt-350m",
-    openai_api_key: str = None
+    openai_api_key: str = None,
+    hf_token: str = None
 ):
     # Step 1: Get context from FAISS
 
@@ -53,7 +54,7 @@ def generate_questions_answers(
         return response.content.strip()
 
     elif model_type in ["gemma", "mistral", "llama", "any_hf"]:
-        generator = load_huggingface_model(model_name=model_name)
+        generator = load_huggingface_model(model_name=model_name, hf_token=hf_token)
         result = generator(prompt, max_new_tokens=1024, temperature=0.7)[0]['generated_text']
         return result.strip()
 
