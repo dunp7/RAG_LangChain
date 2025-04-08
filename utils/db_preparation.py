@@ -20,7 +20,7 @@ def split_pdf_into_chunks(uploaded_file):
     return chunks
 
 
-def get_embedding_model(embedding_type="huggingface", model_name=None, openai_api_key=None, hf_token=None):
+def get_embedding_model(embedding_type="huggingface", model_name=None, openai_api_key=None):
     """Return the embedding model based on the specified type."""
     if embedding_type == "openai":
         return OpenAIEmbeddings(openai_api_key=openai_api_key)
@@ -28,20 +28,18 @@ def get_embedding_model(embedding_type="huggingface", model_name=None, openai_ap
     elif embedding_type == "huggingface":
         return HuggingFaceEmbeddings(
             model_name=model_name or "sentence-transformers/all-MiniLM-L6-v2",
-            hf_token=hf_token
         )
 
     else:
         raise ValueError(f"Embedding type '{embedding_type}' not supported.")
 
 
-def create_faiss_index(chunks, embedding_type="huggingface", model_name=None, openai_api_key=None, hf_token=None):
+def create_faiss_index(chunks, embedding_type="huggingface", model_name=None, openai_api_key=None):
     """Convert chunks to embeddings and store in FAISS."""
     embedding_model = get_embedding_model(
         embedding_type=embedding_type,
         model_name=model_name,
         openai_api_key=openai_api_key,
-        hf_token=hf_token
     )
 
     vectorstore = FAISS.from_documents(chunks, embedding_model)

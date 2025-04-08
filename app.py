@@ -34,8 +34,7 @@ if st.button("Generate Questions & Answers"):
                 chunks,
                 embedding_type="huggingface" if model_type == "huggingface" else "openai",
                 model_name=model_name,
-                openai_api_key=openai_api_key if model_type == "openai" else None,
-                hf_token=hf_token if model_type == "huggingface" else None
+                openai_api_key=openai_api_key if model_type == "openai" else None
             )
 
         with st.spinner("🤖 Generating questions and answers..."):
