@@ -19,7 +19,7 @@ def generate_questions_answers(
     question_type: str,
     num_questions: int,
     vectorstore,
-    model_type: str = "any_hf",
+    model_type: str = "huggingface",
     model_name: str = "facebook/opt-350m",
     openai_api_key: str = None,
     hf_token: str = None
@@ -53,7 +53,7 @@ def generate_questions_answers(
         response = llm([HumanMessage(content=prompt)])
         return response.content.strip()
 
-    elif model_type in ["gemma", "mistral", "llama", "any_hf"]:
+    elif model_type in ["huggingface"]:
         generator = load_huggingface_model(model_name=model_name, hf_token=hf_token)
         result = generator(prompt, max_new_tokens=1024, temperature=0.7)[0]['generated_text']
         return result.strip()
