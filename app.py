@@ -16,12 +16,12 @@ num_questions = st.slider("Number of Questions", 1, 50, 20)
 query = st.text_input("Enter a topic or keyword to focus on (optional)")
 
 # Model configuration
-model_type = st.selectbox("Select Generation Mode", ["huggingface", "openai"])
-if model_type == "huggingface":
-    model_name = st.text_input("Enter Hugging Face Model Name", value="facebook/opt-350m")
+gen_model_type = st.selectbox("Select Generation Mode", ["huggingface", "openai"])
+if gen_model_type == "huggingface":
+    gen_model_name = st.text_input("Enter Hugging Face Model Name", value="facebook/opt-350m")
     hf_token = st.text_input("Enter Hugging Face Token", type="password")  # Secure input for HF token
 else:
-    model_name = "gpt-3.5-turbo"  # Default OpenAI model
+    gen_model_name = "gpt-3.5-turbo"  # Default OpenAI model
     openai_api_key = st.text_input("Enter OpenAI API Key", type="password")  # Secure input for OpenAI key
 
 # Button to generate questions
@@ -31,11 +31,7 @@ if st.button("Generate Questions & Answers"):
             # Process the PDF
             chunks = split_pdf_into_chunks(pdf_file)
             vectorstore = create_faiss_index(
-                chunks,
-                embedding_type="huggingface" if model_type == "huggingface" else "openai",
-                model_name=model_name,
-                openai_api_key=openai_api_key if model_type == "openai" else None
-            )
+                chunks)
 
         with st.spinner("🤖 Generating questions and answers..."):
             # Generate questions and answers
@@ -45,10 +41,10 @@ if st.button("Generate Questions & Answers"):
                 question_type=question_type,
                 num_questions=num_questions,
                 vectorstore=vectorstore,
-                model_type=model_type,
-                model_name=model_name,
-                openai_api_key=openai_api_key if model_type == "openai" else None,
-                hf_token=hf_token if model_type == "huggingface" else None
+                model_type=gen_model_type,
+                model_name=gen_model_name,
+                openai_api_key=openai_api_key if gen_model_type == "openai" else None,
+                hf_token=hf_token if gen_model_type == "huggingface" else None
             )
 
         # Display results
