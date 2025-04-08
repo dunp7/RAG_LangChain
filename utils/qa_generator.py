@@ -7,7 +7,7 @@ import functools
 
 
 @functools.lru_cache(maxsize=2)
-def load_huggingface_model(model_name="google/gemma-2b-it", device_map="auto", torch_dtype="auto"):
+def load_huggingface_model(model_name="facebook/opt-350m", device_map="auto", torch_dtype="auto"):
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     model = AutoModelForCausalLM.from_pretrained(model_name, device_map=device_map, torch_dtype=torch_dtype)
     return pipeline("text-generation", model=model, tokenizer=tokenizer)
@@ -19,8 +19,8 @@ def generate_questions_answers(
     question_type: str,
     num_questions: int,
     vectorstore,
-    model_type: str = "gemma",  # Options: gemma, openai, mistral, llama, etc.
-    model_name: str = "google/gemma-2b-it",
+    model_type: str = "any_hf",
+    model_name: str = "facebook/opt-350m",
     openai_api_key: str = None
 ):
     # Step 1: Get context from FAISS
