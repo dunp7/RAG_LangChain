@@ -46,80 +46,76 @@ device_option = st.radio(
 if option == 'Test Embedding Model':
     st.title("Test Embedding")
 
-    # Input 
+    # Input sentences and labels
     input_text = st.text_area(
-        "Enter a list of sentences (separated by new lines):",
-        placeholder="Type each sentence on a new line."
+        "Enter a list of sentences with labels (format: 'sentence|label' per line):",
+        placeholder="Type each sentence and its label on a new line, separated by '|'. Example:\nHello world|0\nHow are you?|1"
     )
 
-
-
     if input_text.strip():
-        sentences = input_text.strip().split("\n")
-        st.write("Input sentences:")
-        for idx, sentence in enumerate(sentences, start=1):
-            st.write(f"{idx}. {sentence}")
-        
+        # Parse input sentences and labels
+        sentences_and_labels = input_text.strip().split("\n")
+        sentences = []
+        labels = []
+
+        for item in sentences_and_labels:
+            if "|" in item:
+                sentence, label = item.rsplit("|", 1)
+                sentences.append(sentence.strip())
+                labels.append(int(label.strip()))
+            else:
+                st.error("Invalid format. Ensure each line contains 'sentence|label'.")
+
+        st.write("Parsed Input:")
+        for idx, (sentence, label) in enumerate(zip(sentences, labels), start=1):
+            st.write(f"{idx}. {sentence} (Label: {label})")
+
+        # Number of clusters (k)
         num_clusters = st.number_input(
             "Enter the number of clusters (k):",
-            min_value=0,
-            max_value=len(sentences),
-            value=1,
+            min_value=1,
+            max_value=len(set(labels)),
+            value=len(set(labels)),
             step=1
         )
 
-        # Single button for generating embeddings and clustering
+        # Button to generate embeddings and run clustering
         if st.button("Generate Embeddings & Run Clustering"):
             # Start processing time
             start_time = time.time()
 
             # Device configuration
             device = "cuda" if device_option == "GPU" else "cpu"
-
-            # # Resource usage before processing
-            # if device == "cuda":
-            #     initial_gpu_usage = get_gpu_usage()
-            # else:
-            #     initial_cpu_usage = get_cpu_usage()
-
-            # Load the model
             st.write(f"Loading {model_name} model on {device}...")
             model = SentenceTransformer(load_model(model_name), device=device, trust_remote_code=True)
 
+            # Generate embeddings
             st.write("Generating embeddings...")
             vector_embeddings = model.encode(sentences)
 
-            # # Resource usage after processing
-            # if device == "cuda":
-            #     final_gpu_usage = get_gpu_usage()
-            # else:
-            #     final_cpu_usage = get_cpu_usage()
+            # Perform k-means clustering
+            st.write("Performing k-means clustering...")
+            clustered_sentences = perform_kmeans_clustering(vector_embeddings, sentences, num_clusters)
 
+            # Map clustered sentences to labels
+            predicted_labels = clustered_sentences['Cluster']
+            true_labels = labels
+
+            # Calculate accuracy
+            from sklearn.metrics import accuracy_score
+            clustering_accuracy = accuracy_score(true_labels, predicted_labels)
+
+            # Display results
             end_time = time.time()
             st.write(get_processing_time(start_time))
 
-            # # Display resource usage
-            # if device == "cuda":
-            #     st.write("GPU Usage During Processing:")
-            #     st.write(f"  Memory Used: {final_gpu_usage['memory_used'] - initial_gpu_usage['memory_used']:.2f} MB")
-            #     st.write(f"  GPU Utilization: {final_gpu_usage['gpu_utilization']}%")
-            # else:
-            #     st.write(f"CPU Usage During Processing: {final_cpu_usage}%")
+            st.write("Cluster Assignments:")
+            st.write(clustered_sentences)
 
-            # Display generated embeddings
-            st.write("Generated Embeddings:")
-            for idx, embedding in enumerate(vector_embeddings, start=1):
-                st.write(f"Sentence {idx}: Dimension {len(embedding)}")
-
-            # Perform k-means clustering
-            if vector_embeddings is not None:
-                st.write("Performing k-means clustering...")
-                clustered_sentences = perform_kmeans_clustering(vector_embeddings, sentences, num_clusters)
-                st.write("Cluster Assignments:")
-                st.write(clustered_sentences)
+            st.write(f"Clustering Accuracy: {clustering_accuracy:.2f}")
 
     else:
-        st.write("Please enter sentences.")
+        st.write("Please enter sentences and labels.")
 
 
 

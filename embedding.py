@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.cluster import KMeans
 import pandas as pd
-
+from sklearn.decomposition import PCA
 def load_model(model_name):
     # Define a dictionary with model names and corresponding pre-trained models
     models = {
@@ -35,9 +35,11 @@ def perform_kmeans_clustering(embeddings, sentences, num_clusters=3):
     if len(embeddings.shape) != 2:
         raise ValueError("Embeddings must be a 2D array.")
     
+    pca = PCA(n_components=10)  
+    embeddings_pca = pca.fit_transform(embeddings)
     # Perform k-means clustering
-    kmeans = KMeans(n_clusters=num_clusters, random_state=42)
-    cluster_assignments = kmeans.fit_predict(embeddings)
+    kmeans = KMeans(n_clusters=num_clusters, init='k-means++', random_state=42)
+    cluster_assignments = kmeans.fit_predict(embeddings_pca)
 
     # Create a DataFrame for displaying results
     clustered_sentences = pd.DataFrame({
