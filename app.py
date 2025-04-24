@@ -7,7 +7,9 @@ from utils import *
 from vector_db import  *
 import numpy as np
 import time
-
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import confusion_matrix
+from scipy.optimize import linear_sum_assignment
 
 
 # Sidebar menu
@@ -101,9 +103,27 @@ if option == 'Test Embedding Model':
             predicted_labels = clustered_sentences['Cluster']
             true_labels = labels
 
-            # Calculate accuracy
-            from sklearn.metrics import accuracy_score
-            clustering_accuracy = accuracy_score(true_labels, predicted_labels)
+
+            # Nhãn từ K-means (Cluster assignments)
+            predicted_labels = clustered_sentences['Cluster'].to_numpy()
+
+            # Nhãn thật (True labels)
+            true_labels = np.array(labels)
+
+            # Xây dựng confusion matrix
+            confusion = confusion_matrix(true_labels, predicted_labels)
+
+            # Sử dụng Hungarian Algorithm để ánh xạ nhãn
+            row_ind, col_ind = linear_sum_assignment(-confusion)
+
+            # Tạo nhãn ánh xạ
+            mapped_labels = np.zeros_like(predicted_labels)
+            for cluster_id, true_label in zip(col_ind, row_ind):
+                mapped_labels[predicted_labels == cluster_id] = true_label
+
+            # Tính accuracy
+            clustering_accuracy = accuracy_score(true_labels, mapped_labels)
+            print(f"Clustering Accuracy: {clustering_accuracy:.2f}")
 
             # Display results
             end_time = time.time()
