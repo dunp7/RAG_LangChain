@@ -10,7 +10,7 @@ import time
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix
 from scipy.optimize import linear_sum_assignment
-
+import torch
 
 # Sidebar menu
 st.sidebar.title("Embedding Operations")
@@ -134,6 +134,8 @@ if option == 'Test Embedding Model':
 
             st.write(f"Clustering Accuracy: {clustering_accuracy:.2f}")
 
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
     else:
         st.write("Please enter sentences and labels.")
 
@@ -150,6 +152,7 @@ elif option == "Embedding with FAISS":
 
     if uploaded_file:
         # Process the uploaded file and create the FAISS index
+        
         vectorstore = process_file_and_create_index(uploaded_file, load_model(model_name), device_option)
         
         # Query input
@@ -162,7 +165,9 @@ elif option == "Embedding with FAISS":
             # Display the retrieved chunks
             st.write("Relevant Chunks:")
             st.write(relevant_chunks)
-        
+
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
 
 # Demo Small Chatbot to answer things in Uploaded File
 elif option == "Demo ChatBot":
@@ -200,3 +205,6 @@ elif option == "Demo ChatBot":
                 st.markdown(f"**Answer {idx}:** {answer}")
         except Exception as e:
             st.error(f"An error occurred: {str(e)}")
+
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
